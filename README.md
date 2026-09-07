@@ -1,0 +1,60 @@
+# HP-15C
+
+A standalone browser recreation of the classic 1982 Hewlett-Packard HP-15C. Stage one implements RPN arithmetic with the full original keyboard face. It is a behavioral implementation, not a ROM emulator or an official HP product.
+
+## Run
+
+Requires Node.js 22.12 or newer.
+
+```sh
+npm install
+npm run dev -- --port 1515
+```
+
+Open http://127.0.0.1:1515/. For production, `npm run build` generates `dist`; `npm run preview` serves that build locally. All calculator assets and computation are local; no service or API key is required to run it.
+
+## Stage one
+
+The four-level X/Y/Z/T stack supports ENTER, digits, decimal, CHS, EEX, backspace, clear X, and addition, subtraction, multiplication and division. R↓, x⇄y and g LSTx are included for stack use. Values are rounded to ten decimal significant digits; the default view is FIX4. Power retains the calculator state. Reload retains registers, LAST X and stack-lift state; an unfinished entry becomes a committed value rather than remaining editable.
+
+Try **2 ENTER 3 +**. The result is **5.0000**. There is no equals key.
+
+| Physical keyboard | Calculator |
+|---|---|
+| 0–9, decimal point | Number entry |
+| Enter | ENTER |
+| + − * / | Arithmetic |
+| C | CHS |
+| E | EEX |
+| Backspace | Backarrow |
+| Escape or Delete | CLx |
+| F / G | Gold / blue prefix |
+| O | ON/off |
+
+On the calculator, **g → ←** clears X; **g → ENTER** recalls LAST X. All other scientific, statistical, matrix, storage and programming functions are visibly present but inactive. Unsupported shifted operations preserve the calculation. Help in the app lists supported operations.
+
+## Research and staged contract
+
+- [Research dossier](artifacts/research/RESEARCH.md): primary manual citations, exact legends, numerical rules, reference photography, and unresolved compatibility questions.
+- [Comprehensive staged specification](artifacts/research/SPEC.md): full eventual nonprogrammable scope, including complex numbers, matrices, and expression-based SOLVE/integration.
+- Original-era manuals and reference photographs are archived in `artifacts/research/` for local review. They are reference material, not runtime images. Photograph attribution and licenses are recorded in the dossier.
+- [Generated asset provenance](artifacts/research/ASSETS.md): prompts, method and separation of generated textures from exact live glyphs.
+- Critic reports and evidence are in `artifacts/reviews/`.
+
+## Verification
+
+```sh
+npm test
+npm run build
+```
+
+Tests inspect numeric results, stack transitions and manual examples independently of UI formatting. Critic reviews also exercise real mouse/keyboard controls and compare rendered geometry, labels and materials against original photographs. Later-stage functions are not counted as stage-one failures. Historical edge cases without a verified oracle remain explicit in the research.
+
+## Source layout
+
+- `src/calculator.js`: decimal arithmetic, entry state, stack and display formatting.
+- `src/keyboard.js`: all 39 physical keys and their three legend layers.
+- `src/main.js`: input dispatch, live segmented LCD and persistence.
+- `src/style.css`: responsive case, faceplate, key geometry and typography.
+- `public/assets/`: generated key and LCD textures used by the app.
+- `tests/`: deterministic engine regressions.

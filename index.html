@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><meta name="theme-color" content="#eeece7"><title>HP-15C · Scientific Calculator</title></head>
+<body>
+  <main>
+    <header class="page-header"><a class="wordmark" href="/">THE POCKET INSTRUMENT</a><span>1982 <span class="header-dash">—</span> HEWLETT-PACKARD</span></header>
+    <section class="introduction"><div class="eyebrow">THE VOYAGER SERIES / No. 15</div><h1>A classic. At your fingertips.</h1><p>The HP-15C, faithfully re-created for the browser. Think in RPN.</p></section>
+    <section class="calculator-stage" aria-label="HP-15C calculator">
+      <div class="calculator-frame"><div class="calculator" id="calculator">
+        <div class="metal-panel"><div class="display-bezel"><div class="lcd" id="lcd"><svg id="digits" viewBox="0 0 460 70" preserveAspectRatio="none" aria-hidden="true"></svg><div class="annunciators"><span id="shift-indicator"></span></div></div></div><div class="badge" aria-hidden="true"><img src="/assets/hp-badge.svg" alt=""></div></div>
+        <div class="keyboard-panel"><div class="clear-bracket"><span>CLEAR</span></div><div class="keyboard" id="keyboard"></div><div class="maker">HEWLETT·PACKARD</div></div>
+      </div></div>
+      <output class="sr-only" id="accessible-display" aria-live="polite" aria-atomic="true">0.0000</output>
+    </section>
+    <div class="below-calculator"><span><i></i> STAGE 01 <span class="separator">/</span> BASIC ARITHMETIC</span><button id="help-toggle" aria-expanded="false" aria-controls="guide">Keyboard & quick guide <span>↗</span></button></div>
+    <p class="status" id="status" role="status">Start with <kbd>2</kbd> <kbd>ENTER</kbd> <kbd>3</kbd> <kbd>+</kbd> <span>—</span> the result is 5.</p>
+    <section class="guide" id="guide" hidden>
+      <div><h2>Think in reverse Polish.</h2><p>Enter the first number, press ENTER, enter the second, then choose an operation. There is no equals key.</p><p>Try <strong>12 ENTER 3 ÷</strong> for 4. ENTER duplicates X; the four-register stack holds intermediate values.</p></div>
+      <div><h2>Your keyboard is a keypad.</h2><p><kbd>0–9</kbd> <kbd>.</kbd> Numbers · <kbd>Enter</kbd> ENTER<br><kbd>+ − * /</kbd> Arithmetic · <kbd>E</kbd> EEX · <kbd>C</kbd> CHS<br><kbd>Backspace</kbd> Delete · <kbd>Esc</kbd> Clear X<br><kbd>F</kbd> / <kbd>G</kbd> Shift · <kbd>O</kbd> Power</p><p>On the calculator, <strong>g → ←</strong> clears X and <strong>g → ENTER</strong> recalls LAST X. R↓ rolls the stack; x⇄y swaps X and Y.</p></div>
+      <p class="scope">Every original key and shifted legend is present. Scientific, statistical, matrix, register and programming functions are inactive in this first stage. Selecting one leaves the value unchanged. This is an independent recreation.</p>
+    </section>
+    <footer><span>REVERSE POLISH NOTATION. TIMELESS BY DESIGN.</span><a href="/research.html" id="research-link">Research & specification ↗</a></footer>
+  </main><script type="module" src="/src/main.js"></script>
+</body></html>
