@@ -2,6 +2,8 @@
 
 Status: staged application contract, 2026-09-07. User approved original 1982 appearance and first-stage arithmetic. Evidence and exact legends: [research dossier](RESEARCH.md). Future stages below are implementation planning, not a claim of current functionality.
 
+Current implementation: stage 1 plus the stage 2 real scientific functions and display/angle modes, and stage 3 permutations/combinations. Radix switching, full-mantissa inspection and the other later-stage functions remain deferred. Reviewed numerical conventions and unresolved historical edge cases are recorded in [scientific oracles](SCIENTIFIC-ORACLES.md).
+
 ## Product outcome
 
 A standalone local browser calculator that feels like using an original HP-15C. Default view contains a faithful landscape calculator with complete keyboard and readable reflective segmented LCD. Mouse, touch and keyboard produce the same engine actions. Numeric behavior follows the archived original HP handbook. The eventual application supports every nonprogramming mathematical capability, including an alternative function-input mechanism for SOLVE and integration. No instruction recorder or user-program execution is required.

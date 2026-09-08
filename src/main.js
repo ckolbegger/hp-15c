@@ -34,8 +34,9 @@ function render() {
   }
   document.querySelector('#digits').innerHTML=svg;
   document.querySelector('#accessible-display').textContent=calc.on ? (display.negative?'-':'')+display.mantissa+(display.exponent?'e'+display.exponent:'') : 'Off';
-  document.querySelector('#shift-indicator').textContent=calc.on?(calc.shift||''):'';
+  document.querySelector('#shift-indicator').textContent=calc.on?([calc.shift,calc.angleMode==='DEG'?'':calc.angleMode].filter(Boolean).join('   ')):'';
   document.querySelector('#lcd').classList.toggle('blink',calc.overflow);
+  for(const shift of ['f','g'])document.querySelector(`[data-key="${shift}"]`)?.setAttribute('aria-pressed',String(calc.shift===shift));
   try {localStorage.setItem('hp15c-stage1',JSON.stringify(calc.save()));} catch { /* Calculation works without persistence. */ }
 }
 for (const key of keys) {
@@ -44,8 +45,8 @@ for (const key of keys) {
   button.className='key'+(/^\d$/.test(key.id)?' number':'')+(['+','-','*','/'].includes(key.id)?' operator':'')+(key.id==='ENTER'?' enter':'')+(key.id==='f'?' shift-f':key.id==='g'?' shift-g':'');
   button.style.gridColumn=key.col+1;
   button.style.gridRow=key.id==='ENTER'?'3 / span 2':String(key.row+1);
-  button.setAttribute('aria-label',(keyNames[key.id]||key.label)+(!available.has(key.id)?' (not available in stage one)':''));
-  button.title=`${keyNames[key.id]||key.label}${key.gold?' · f: '+key.gold:''}${key.blue?' · g: '+key.blue:''}${!available.has(key.id)?' · Available in a later stage':''}`;
+  button.setAttribute('aria-label',(keyNames[key.id]||key.label)+(!available.has(key.id)?' (base function not yet available)':''));
+  button.title=`${keyNames[key.id]||key.label}${key.gold?' · f: '+key.gold:''}${key.blue?' · g: '+key.blue:''}${!available.has(key.id)?' · Base function not yet available; see guide for shifted functions':''}`;
   button.innerHTML=`<span class="gold" aria-hidden="true">${legend(key.gold)}</span><span class="key-cap"><span class="primary" aria-hidden="true">${legend(key.label)}</span><span class="blue" aria-hidden="true">${legend(key.blue)}</span></span>`;
   button.addEventListener('click',()=>press(key.id));
   keyboard.append(button);
@@ -55,7 +56,8 @@ function press(key) {
   const handled=calc.press(key);
   render();
   if (!handled && calc.on) status.textContent=`${wasShift?wasShift+' → ':''}${keys.find(k=>k.id===key)?.label||key} is available in a later stage. Your calculation is unchanged.`;
-  else if (calc.error) status.textContent='Error 0 · Division by zero. Press any key to restore the previous value.';
+  else if (calc.pending) status.textContent= ['FIX','SCI','ENG'].includes(calc.pending)?`${calc.pending} · Choose precision 0–9.`:`${calc.pending==='HYP'?'Hyperbolic':'Inverse hyperbolic'} · Choose SIN, COS or TAN.`;
+  else if (calc.error) status.textContent='Error 0 · Invalid mathematical operation. Press any key to restore the previous value.';
   else if (calc.overflow) status.textContent='Overflow · Press ← or ON to clear blinking. Other calculation keys remain active.';
   else status.textContent=calc.on?'RPN · Enter a number, ENTER, another number, then an operation.':'Powered off · Press ON to resume.';
   const b=[...keyboard.children].find(b=>b.dataset.key===key);

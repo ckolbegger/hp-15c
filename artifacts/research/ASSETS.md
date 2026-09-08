@@ -25,3 +25,7 @@ No reference image supplied for this generation. The LCD uses this image behind 
 ## Final visual refinements
 
 The third pass applies a translucent pale glass tint over the generated LCD to match the original reference’s gray-beige reflectance, and a subtle dark overlay over key textures to reduce excessive rim highlights. These are runtime CSS layers; the generated PNG assets remain unmodified. The hp/15C badge, radical and exchange marks are explicit SVG artwork, with integral bounds composed separately.
+
+## Scientific release visual correction
+
+The faceplate periodic CSS gradient caused sampling bands. It is replaced with low-opacity nonperiodic SVG grain (`public/assets/metal-grain.svg`) over the silver gradient. Generated keys and LCD PNGs are unchanged. Scientific pass1 critic rescored the appearance9.05/10 with the banding resolved.

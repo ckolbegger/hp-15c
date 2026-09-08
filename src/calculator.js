@@ -1,7 +1,8 @@
-import Decimal from 'decimal.js';
+import {formatNumber, roundDisplay, group} from './format.js';
+import {shiftedKeys} from './bindings.js';
+import {D, PI, unary, power, coordinates, combinatorial} from './math.js';
 
 // Extra working precision; every stored result is rounded to the HP's ten digits.
-const D = Decimal.clone({ precision: 40, rounding: Decimal.ROUND_HALF_UP });
 const MAX = new D('9.999999999e99');
 const MIN = new D('1e-99');
 export class Calculator {
@@ -14,6 +15,9 @@ export class Calculator {
     this.overflow = false;
     this.on = true;
     this.shift = null;
+    this.pending = null;
+    this.angleMode = 'DEG';
+    this.format = {mode:'FIX',digits:4};
     if (saved && Array.isArray(saved.stack) && saved.stack.length === 4) {
       try {
         const values = [...saved.stack, saved.lastX];
@@ -22,11 +26,13 @@ export class Calculator {
           this.lastX = new D(saved.lastX).toString();
           this.lift = !!saved.lift;
           this.on = saved.on !== false;
+          if (['DEG','RAD','GRAD'].includes(saved.angleMode)) this.angleMode=saved.angleMode;
+          if (['FIX','SCI','ENG'].includes(saved.format?.mode) && Number.isInteger(saved.format.digits) && saved.format.digits>=0 && saved.format.digits<=9) this.format={...saved.format};
         }
       } catch { /* Ignore incompatible saved sessions. */ }
     }
   }
-  save() { return {stack: this.stack, lastX: this.lastX, lift: this.lift, on: this.on}; }
+  save() { return {stack: this.stack, lastX: this.lastX, lift: this.lift, on: this.on, angleMode:this.angleMode, format:this.format}; }
   push() { this.stack = [this.stack[0], this.stack[0], this.stack[1], this.stack[2]]; }
   entryValue() {
     if (this.entry === null) return new D(this.stack[0]);
@@ -38,7 +44,6 @@ export class Calculator {
     if (this.entry !== null) return;
     if (this.lift) this.push();
     this.entry = '0';
-    this.lift = false;
   }
   finish() {
     if (this.entry !== null) {
@@ -54,17 +59,26 @@ export class Calculator {
   press(key) {
     // Errors consume their acknowledgement key; overflow is a persistent flag.
     if (this.on && this.error) { this.error = false; return true; }
-    if (key === 'ON') { this.on = !this.on; this.shift = null; this.overflow = false; return true; }
+    if (key === 'ON') { this.on = !this.on; this.shift = null; this.pending = null; this.overflow = false; return true; }
     if (!this.on) return false;
     if (this.overflow && key === 'BACK') { this.overflow = false; return true; }
     if (key === 'f' || key === 'g') { this.shift = key; return true; }
     if (this.shift) {
       const shifted = this.shift;
       this.shift = null;
-      if (shifted === 'g' && key === 'BACK') key = 'CLX';
-      else if (shifted === 'g' && key === 'ENTER') key = 'LASTX';
+      key = shiftedKeys[shifted][key];
+      if (!key) return false;
+    }
+    if (this.pending) {
+      const pending=this.pending; this.pending=null;
+      if (['FIX','SCI','ENG'].includes(pending) && /^\d$/.test(key)) {
+        this.finish(); this.format={mode:pending,digits:Number(key)}; return true;
+      }
+      if (['HYP','AHYP'].includes(pending) && ['SIN','COS','TAN'].includes(key)) key=(pending==='AHYP'?'A':'')+key+'H';
       else return false;
     }
+    if (['FIX','SCI','ENG','HYP','AHYP'].includes(key)) { this.pending=key; return true; }
+    if (['DEG','RAD','GRAD'].includes(key)) { this.finish(); this.angleMode=key; return true; }
     if (/^\d$/.test(key)) {
       this.begin();
       if (this.entry.includes('e')) {
@@ -131,6 +145,39 @@ export class Calculator {
       this.stack = [this.normalize(result), this.stack[2], this.stack[3], this.stack[3]];
       this.lift = true; return true;
     }
+    if (['POWER','PERCENT','DELTA_PERCENT','PERMUTE','COMBINE'].includes(key)) {
+      this.finish();
+      const x = new D(this.stack[0]), y = new D(this.stack[1]);
+      const result = ['PERMUTE','COMBINE'].includes(key) ? combinatorial(y,x,key==='COMBINE') : key === 'POWER' ? power(y,x) : key === 'PERCENT' ? y.mul(x).div(100) : y.isZero() ? new D(NaN) : x.minus(y).div(y).mul(100);
+      if (result.isNaN()) { this.error = true; return true; }
+      this.lastX = x.toString(); this.stack[0] = this.normalize(result);
+      if (['POWER','PERMUTE','COMBINE'].includes(key)) this.stack = [this.stack[0],this.stack[2],this.stack[3],this.stack[3]];
+      this.lift = true; return true;
+    }
+    if (key === 'POLAR' || key === 'RECT') {
+      this.finish(); const x=new D(this.stack[0]), y=new D(this.stack[1]);
+      const result=coordinates(x,y,this.angleMode,key);
+      this.lastX=x.toString(); this.stack[0]=this.normalize(result[0]); this.stack[1]=this.normalize(result[1]); this.lift=true; return true;
+    }
+    if (key === 'PI') {
+      this.finish(); if (this.lift) this.push(); this.stack[0] = this.normalize(PI); this.lift = true; return true;
+    }
+    if (key === 'RND') {
+      this.finish(); this.lastX = this.stack[0];
+      this.stack[0] = this.normalize(roundDisplay(new D(this.stack[0]),this.format));
+      this.lift = true; return true;
+    }
+    if (key === 'ROLLUP') {
+      this.finish(); this.stack = [this.stack[3],this.stack[0],this.stack[1],this.stack[2]]; this.lift = true; return true;
+    }
+    if (Object.hasOwn(unary, key)) {
+      this.finish();
+      const x = new D(this.stack[0]);
+      const result = unary[key](x,this.angleMode);
+      if (result.isNaN()) { this.error = true; return true; }
+      this.lastX = x.toString();
+      this.stack[0] = this.normalize(result); this.lift = true; return true;
+    }
     if (key === 'SWAP') {
       this.finish(); [this.stack[0], this.stack[1]] = [this.stack[1], this.stack[0]]; this.lift = true; return true;
     }
@@ -155,23 +202,6 @@ export class Calculator {
       } else mantissa = group(mantissa);
       return {mantissa:mantissa+(mantissa.includes('.')?'':'.'), exponent:e===undefined?'':e.padStart(2,'0'), negative:m.startsWith('-')};
     }
-    const n = new D(this.stack[0]);
-    const a = n.abs();
-    const fixed = a.toFixed(4);
-    if ((a.gt(0) && new D(fixed).isZero()) || fixed.split('.')[0].length > 10) {
-      let [m,e] = a.toExponential(4).split('e');
-      // FIX rounding cannot invent exponent 100 at the finite upper limit.
-      if (Number(e) > 99) { m = '9.9999'; e = '99'; }
-      return {mantissa:m, exponent:(Number(e)<0?'-':'')+String(Math.abs(Number(e))).padStart(2,'0'), negative:n.isNeg()&&!n.isZero()};
-    }
-    const places = Math.max(0, Math.min(4, 10-fixed.split('.')[0].length));
-    let m = a.toFixed(places);
-    if (!m.includes('.')) m += '.';
-    return {mantissa:group(m), exponent:'', negative:n.isNeg()&&!n.isZero()};
+    return formatNumber(new D(this.stack[0]),this.format);
   }
-}
-
-function group(mantissa) {
-  const [integer, fraction] = mantissa.split('.');
-  return integer.replace(/\B(?=(\d{3})+(?!\d))/g, ',') + (fraction === undefined ? '' : '.'+fraction);
 }
