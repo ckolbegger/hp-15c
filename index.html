@@ -1,13 +1,13 @@
 <!doctype html>
 <html lang="en">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><meta name="theme-color" content="#eeece7"><title>HP-15C · Scientific Calculator</title></head>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><meta name="theme-color" content="#eeece7"><title>HP-15C · Scientific Calculator</title><link rel="manifest" href="/manifest.webmanifest"><link rel="apple-touch-icon" href="/assets/app-icon-192.png"><script>document.documentElement.dataset.view=new URLSearchParams(location.search).get('view')==='full'?'full':new URLSearchParams(location.search).get('view')==='calculator'||matchMedia('(display-mode: standalone)').matches?'calculator':'full';</script></head>
 <body>
   <main>
     <header class="page-header"><a class="wordmark" href="/">THE POCKET INSTRUMENT</a><span>1982 <span class="header-dash">—</span> HEWLETT-PACKARD</span></header>
     <section class="introduction"><div class="eyebrow">THE VOYAGER SERIES / No. 15</div><h1>A classic. At your fingertips.</h1><p>The HP-15C, faithfully re-created for the browser. Think in RPN.</p></section>
     <section class="calculator-stage" aria-label="HP-15C calculator">
-      <div class="calculator-frame"><div class="calculator" id="calculator">
-        <div class="metal-panel"><div class="display-bezel"><div class="lcd" id="lcd"><svg id="digits" viewBox="0 0 460 70" preserveAspectRatio="none" aria-hidden="true"></svg><div class="annunciators"><span id="shift-indicator"></span></div></div></div><div class="badge" aria-hidden="true"><img src="/assets/hp-badge.svg" alt=""></div></div>
+      <div class="calculator-frame"><div class="calculator" id="calculator" tabindex="-1">
+        <div class="metal-panel"><div class="display-bezel"><div class="lcd" id="lcd"><svg id="digits" viewBox="0 0 460 70" preserveAspectRatio="none" aria-hidden="true"></svg><div class="annunciators"><span id="shift-indicator"></span></div></div></div><button class="badge" id="view-menu-trigger" type="button" aria-label="HP-15C view options" aria-haspopup="menu" aria-expanded="false" aria-controls="view-menu" title="Right-click for view options"><img src="/assets/hp-badge.svg" alt=""></button></div>
         <div class="keyboard-panel"><div class="clear-bracket"><span>CLEAR</span></div><div class="keyboard" id="keyboard"></div><div class="maker">HEWLETT·PACKARD</div></div>
       </div></div>
       <output class="sr-only" id="accessible-display" aria-live="polite" aria-atomic="true">0.0000</output>
@@ -50,5 +50,5 @@
       <details><summary>Inspect stack, registers & matrices</summary><pre id="memory-inspector"></pre></details>
     </details>
     <footer><span>REVERSE POLISH NOTATION. TIMELESS BY DESIGN.</span><a href="/research.html" id="research-link">Research & specification ↗</a></footer>
-  </main><script type="module" src="/src/main.js"></script>
+  </main><div id="view-menu" role="menu" aria-label="Calculator view" hidden><button type="button" role="menuitemradio" aria-checked="true" data-view="full">Full site</button><button type="button" role="menuitemradio" aria-checked="false" data-view="calculator">Calculator only</button></div><script type="module" src="/src/main.js"></script>
 </body></html>

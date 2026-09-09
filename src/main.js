@@ -1,3 +1,4 @@
+import {setupPresentation} from './presentation.js';
 import './style.css';
 import {Calculator} from './calculator.js';
 import {keys,available,keyNames} from './keyboard.js';
@@ -80,14 +81,14 @@ function press(key) {
   if(b){b.classList.add('pressed');setTimeout(()=>b.classList.remove('pressed'),100);}
 }
 document.addEventListener('keydown',event=>{
-  if (event.ctrlKey||event.metaKey||event.altKey||event.target.closest('input,textarea,select'))return;
+  if (event.ctrlKey||event.metaKey||event.altKey||event.target.closest('input,textarea,select,#view-menu'))return;
   if(event.key.toLowerCase()==='o'){event.preventDefault();if(!event.repeat){powerHeld=true;powerChord=false;}return;}
   if(event.key==='.'&&powerHeld){event.preventDefault();powerChord=true;press('RADIX');return;}
   // Preserve native activation and keyboard navigation for help/links/buttons.
   if ((event.key==='Enter'||event.key===' ') && event.target.closest('button,a') && !event.target.closest('#keyboard')) return;
   const mapping={Enter:'ENTER',Backspace:'BACK',Escape:'CLX',Delete:'CLX',e:'EEX',c:'CHS',f:'f',g:'g',o:'ON'};
   const key=mapping[event.key]||mapping[event.key.toLowerCase()]||(/^[0-9.+*/-]$/.test(event.key)?event.key:null);
-  if(key){event.preventDefault();press(key);}
+  if(key){event.preventDefault();if(event.target.closest('#view-menu-trigger'))document.querySelector('#calculator').focus({preventScroll:true});press(key);}
 });
 document.addEventListener('keyup',event=>{if(event.key.toLowerCase()==='o'&&powerHeld){powerHeld=false;if(!powerChord)press('ON');powerChord=false;}});
 window.addEventListener('blur',()=>{powerHeld=false;powerChord=false;});
@@ -96,7 +97,7 @@ document.querySelector('#help-toggle').addEventListener('click',event=>{
   event.currentTarget.setAttribute('aria-expanded',String(!guide.hidden));
 });
 const frame=document.querySelector('.calculator-frame');
-function size(){const scale=Math.min(1,document.querySelector('.calculator-stage').clientWidth/940);frame.style.width=`${940*scale}px`;frame.style.height=`${574*scale}px`;document.querySelector('.calculator').style.transform=`scale(${scale})`;}
+function size(){const compact=document.documentElement.dataset.view==='calculator';const scale=Math.min(1,document.querySelector('.calculator-stage').clientWidth/940,compact?Math.max(1,window.innerHeight-24)/574:1);frame.style.width=`${940*scale}px`;frame.style.height=`${574*scale}px`;document.querySelector('.calculator').style.transform=`scale(${scale})`;}
 const errorMessages={0:'Invalid mathematical operation',1:'This operation requires a scalar',2:'Insufficient or degenerate statistics',3:'Register or matrix element does not exist',6:'Invalid flag number',8:'No root found',10:'Insufficient calculator memory',11:'Incompatible matrix dimensions or result matrix'};
 let numericalWorker=null,runSnapshot=null;
 const functionInput=document.querySelector('#function-expression'),parameterInput=document.querySelector('#function-parameters');
@@ -107,7 +108,7 @@ function parseParameters(text){const values={};if(!text.trim())return values;con
 function stopNumerical(){if(numericalWorker)numericalWorker.terminate();numericalWorker=null;document.querySelector('#cancel-calculation').hidden=true;document.querySelector('#calculator').removeAttribute('aria-busy');}
 function startNumerical(operation){
   calc.request=null;
-  if(!functionInput.value.trim()){document.querySelector('#workbench').open=true;functionInput.focus();status.textContent='Enter f(x) below before using SOLVE or integration.';return;}
+  if(!functionInput.value.trim()){setView('full');document.querySelector('#workbench').open=true;functionInput.focus();status.textContent='Enter f(x) below before using SOLVE or integration.';return;}
   let parameters;try{parameters=parseParameters(parameterInput.value);}catch(e){status.textContent=e.message;return;}
   runSnapshot={x:calc.stack[0],y:calc.stack[1]};
   numericalWorker=new Worker(new URL('./numerical-worker.js',import.meta.url),{type:'module'});
@@ -133,4 +134,5 @@ function updateInspector(){
   const lines=['Stack: '+['X','Y','Z','T'].map((k,i)=>k+' = '+describe(calc.stack[i])+(calc.flags[8]?' + ('+calc.imaginary[i]+')i':'')).join(' · '),'LAST X: '+describe(calc.lastX)+(calc.flags[8]?' + ('+calc.lastImaginary+')i':''),'Index I: '+describe(calc.index),'Registers: '+calc.registers.slice(0,calc.registerLimit+1).map((v,i)=>'R'+i+'='+describe(v)).join(' · '),...Object.entries(calc.matrices).map(([name,m])=>name+' ('+m.rows+' × '+m.cols+(m.lu?', LU':'')+')'+(m.data.length?'\n'+Array.from({length:m.rows},(_,r)=>m.data.slice(r*m.cols,(r+1)*m.cols).join('   ')).join('\n'):''))];
   target.textContent=lines.join('\n\n');
 }
+const setView=setupPresentation(size);window.addEventListener('resize',size);
 new ResizeObserver(size).observe(document.querySelector('.calculator-stage'));size();render();

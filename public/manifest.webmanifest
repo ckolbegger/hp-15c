@@ -1,0 +1,15 @@
+{
+  "id": "/",
+  "name": "HP-15C Scientific Calculator",
+  "short_name": "HP-15C",
+  "description": "A classic RPN scientific calculator with complex numbers, matrices and numerical tools.",
+  "start_url": "/?view=calculator",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#eeece7",
+  "theme_color": "#272724",
+  "icons": [
+    {"src": "/assets/app-icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "/assets/app-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"}
+  ]
+}

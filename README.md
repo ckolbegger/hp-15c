@@ -13,6 +13,21 @@ npm run dev -- --port 1515
 
 Open http://127.0.0.1:1515/. For production, `npm run build` generates `dist`; `npm run preview` serves that build locally. All calculator assets and computation are local; no service or API key is required to run it.
 
+## Calculator-only view and PWA
+
+Right-click (or click/tap) the HP-15C logo and choose **Calculator only** or **Full site**. The current window switches without resetting the calculation. Keyboard users can focus the logo and press Shift+F10, then use arrow keys and Enter; Escape closes the menu.
+
+Normal browser visits default to the full site. Installed app launches default to calculator-only; an explicit `?view=full` or `?view=calculator` selects that view. When SOLVE/integration needs an expression, the full site opens its function editor.
+
+To try the installable production build locally:
+
+```sh
+npm run build
+npm run preview -- --port 1516
+```
+
+Open `http://127.0.0.1:1516/?view=calculator` in a browser supporting PWA installation and use its install command. The production service worker caches the app and numerical worker for offline use after the initial successful load. Close all app windows/tabs before reopening to activate a newly downloaded version. Development mode on port 1515 does not register an offline worker.
+
 ## Basic use
 
 The four-level X/Y/Z/T stack supports ENTER, digits, decimal, CHS, EEX, backspace, clear X, and addition, subtraction, multiplication and division. R↓, x⇄y and g LSTx are included for stack use. Values are rounded to ten decimal significant digits; the default view is FIX4. Power retains the calculator state. Reload retains registers, LAST X and stack-lift state; an unfinished entry becomes a committed value rather than remaining editable.

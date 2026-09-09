@@ -77,3 +77,16 @@ footer a { color:inherit; text-decoration:none; }
 @media(max-width:700px){.scientific-guide th,.scientific-guide td{padding:7px 4px;font-size:10px;}}
 
 .workbench{margin:28px 0;color:#41483c;font:14px/1.6 system-ui;border-top:1px solid #c9cbbf;padding-top:18px}.workbench summary{cursor:pointer;font-weight:600}.workbench label{display:block;margin-top:14px}.workbench input{box-sizing:border-box;width:100%;padding:10px;border:1px solid #aeb3a5;border-radius:4px;background:#f6f5f0;color:#263123;font:16px monospace}.workbench-actions{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0}.workbench-actions button{padding:9px 14px;background:#414b3c;color:#fff;border:0;border-radius:4px;cursor:pointer}.workbench pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:450px;overflow:auto;background:#f5f4ee;padding:14px;font:13px/1.6 monospace}.workbench .expression-help{font-size:12px}button[hidden]{display:none}
+
+.badge{cursor:context-menu;appearance:none}.badge:focus-visible{outline:3px solid #e7b75e;outline-offset:4px}
+html[data-view="calculator"],html[data-view="calculator"] body{height:100%;overflow:hidden;background:#eeece7}
+html[data-view="calculator"] main{max-width:none;height:100dvh;padding:12px;display:flex;align-items:center;justify-content:center}
+html[data-view="calculator"] main>:not(.calculator-stage):not(#accessible-display):not(#status){display:none!important}
+html[data-view="calculator"] .calculator-stage{width:100%;padding:0}
+#view-menu{position:fixed;z-index:1000;min-width:190px;max-width:calc(100vw - 16px);padding:5px;background:#f8f7f1;color:#30382d;border:1px solid #b4b8ab;border-radius:8px;box-shadow:0 8px 24px #0003}
+#view-menu[hidden]{display:none}#view-menu button{display:block;width:100%;border:0;border-radius:4px;background:none;padding:9px 12px;text-align:left;font:14px system-ui;color:inherit;cursor:pointer}
+#view-menu button::before{content:' ';display:inline-block;width:20px}#view-menu button[aria-checked="true"]::before{content:'✓'}#view-menu button:hover,#view-menu button:focus-visible{background:#dfe5d8;outline:none}
+
+html[data-view="calculator"] #status{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+
+.calculator:focus{outline:none}
