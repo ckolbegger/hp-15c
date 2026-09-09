@@ -12,7 +12,7 @@
       </div></div>
       <output class="sr-only" id="accessible-display" aria-live="polite" aria-atomic="true">0.0000</output>
     </section>
-    <div class="below-calculator"><span><i></i> STAGE 02 <span class="separator">/</span> SCIENTIFIC FUNCTIONS</span><button id="help-toggle" aria-expanded="false" aria-controls="guide">Keyboard & quick guide <span>↗</span></button></div>
+    <div class="below-calculator"><span><i></i> HP-15C <span class="separator">/</span> NONPROGRAMMABLE</span><button id="help-toggle" aria-expanded="false" aria-controls="guide">Keyboard & quick guide <span>↗</span></button></div>
     <p class="status" id="status" role="status">Start with <kbd>2</kbd> <kbd>ENTER</kbd> <kbd>3</kbd> <kbd>+</kbd> <span>—</span> the result is 5.</p>
     <section class="guide" id="guide" hidden>
       <div><h2>Think in reverse Polish.</h2><p>Enter the first number, press ENTER, enter the second, then choose an operation. There is no equals key.</p><p>Try <strong>12 ENTER 3 ÷</strong> for 4. ENTER duplicates X; the four-register stack holds intermediate values.</p></div>
@@ -30,8 +30,25 @@
         <tr><td>Factorial & probability</td><td>f 0: x! (also Γ(x+1)); f +: permutations; g +: combinations</td><td>52 ENTER 4 g + → 270,725</td></tr>
         </tbody></table>
       </div>
-      <p class="scope">All original legends remain visible. Statistics, random numbers, storage registers, complex numbers, matrices, SOLVE, integration, full-mantissa inspection and programming controls are not yet active. Radix remains a decimal point. This is an independent behavioral recreation; see Research for compatibility details.</p>
+      <div class="scientific-guide"><h2>Memory, statistics and complex numbers</h2>
+<p><strong>STO / RCL</strong> then 0–9 or .0–.9 stores/recalls a register. After STO/RCL, + − × ÷ performs register arithmetic. TAN selects I; COS selects the register addressed by I. <strong>f 4</strong> exchanges X with a register. <strong>f x⇄y</strong> clears registers.</p>
+<p><strong>f ENTER</strong> generates a reproducible random number; STO ENTER seeds it; RCL ENTER recalls the seed. <strong>g 4 / 5 / 6</strong> then 0–9 sets/clears/tests a flag. Flag 8 enables complex mode; flag 9 controls overflow blinking. f 5 / f 6 then a register updates DSE/ISG counters and reports the condition.</p>
+<p>Statistics: <strong>f GSB</strong> clears statistics and stack. Enter y ENTER x Σ+ for each pair; g Σ+ removes a pair. <strong>g 0</strong>: means; <strong>g decimal</strong>: sample deviations; <strong>f Σ+</strong>: intercept in X, slope in Y; <strong>x f decimal</strong>: predicted y in X, correlation in Y. RCL Σ+ recalls sums.</p>
+<p>Complex: enter <strong>real ENTER imaginary f TAN</strong>. <strong>f −</strong> swaps real and imaginary X; hold <strong>f COS</strong> to inspect imaginary X. <strong>g 5 8</strong> exits complex mode. Complex trig uses radians; coordinate conversions use the selected angle unit.</p>
+<h2>Matrices A–E</h2><p>After a matrix command, use the top-row keys √x, eˣ, 10ˣ, yˣ, 1/x for A–E; no extra f is needed. Enter rows ENTER columns <strong>f SIN A</strong> to dimension A. <strong>f CHS 1</strong> initializes row/column registers; <strong>f RCL</strong> enables USER stepping. Enter each value then <strong>STO A</strong>. <strong>RCL A</strong> recalls each element. R0/R1 specify an individual cell; alternatively row ENTER column RCL g A recalls it.</p>
+<p><strong>RCL CHS A</strong> recalls a matrix descriptor; <strong>STO CHS B</strong> copies it to B (or fills B when X is scalar). <strong>f EEX C</strong> selects result matrix C. Arithmetic and 1/x operate on descriptors. Matrix division computes X⁻¹Y. Products require a result matrix distinct from their inputs. To allocate the maximum 64 matrix elements: <strong>1 f SIN COS</strong>; this leaves only R0, R1 and I as storage.</p>
+<p><strong>f CHS digit</strong>: 0 clear matrices; 1 reset cell indices; 2 expand complex blocks; 3 reduce blocks; 4 transpose; 5 YᵀX; 6 residual RESULT−YX; 7 row norm; 8 Frobenius norm; 9 determinant (LU in RESULT). On descriptors, <strong>f + / g +</strong> pack/unpack complex elements.</p>
+<p>Hold <strong>f ←</strong> for the full mantissa. Hold <strong>g RCL</strong> for memory allocation. Hold ON and press decimal (or hold O and press . on your keyboard) to toggle the radix convention. The controls below also include a radix-convention toggle and a readable memory inspector.</p></div>
+<p class="scope">All original legends remain visible. Programming, subroutine execution and hardware diagnostics are excluded. SOLVE and integration use the function editor below. Numerical algorithms and singular-matrix perturbations are behavioral approximations; compatibility notes record their limits. This is an independent behavioral recreation; see Research for compatibility details.</p>
     </section>
+    <details id="workbench" class="workbench"><summary>Function editor & memory inspector</summary>
+      <p>Define f(x) for SOLVE and integration. Enter two root estimates, or lower then upper integration bounds, using ENTER between them. Use the gold SOLVE / ∫ keys or the buttons below. Computation can be cancelled.</p>
+      <label for="function-expression">f(x)</label><input id="function-expression" placeholder="x^2 - 3*x - 10" autocomplete="off" spellcheck="false">
+      <label for="function-parameters">Parameters (optional)</label><input id="function-parameters" placeholder="a=2, b=3" autocomplete="off" spellcheck="false">
+      <p class="expression-help">Use x, pi, e, + − * / ^, parentheses, and sqrt, abs, exp, ln, log (base 10), sin/cos/tan and their inverse/hyperbolic forms, floor, ceil, int, frac, factorial, square, recip, pow10, hms, hours, rad, deg; pow(a,b), perm(n,r), comb(n,r). Write multiplication explicitly: 2*x. Real trig follows the selected angle unit. In complex mode, i and complex(real,imag) are available, trig uses radians, and SOLVE/integration sample the real part along the real x axis.</p>
+      <div class="workbench-actions"><button id="solve-function">SOLVE</button><button id="integrate-function">Integrate</button><button id="cancel-calculation" hidden>Cancel calculation</button><button id="radix-toggle">Toggle decimal point / comma</button></div>
+      <details><summary>Inspect stack, registers & matrices</summary><pre id="memory-inspector"></pre></details>
+    </details>
     <footer><span>REVERSE POLISH NOTATION. TIMELESS BY DESIGN.</span><a href="/research.html" id="research-link">Research & specification ↗</a></footer>
   </main><script type="module" src="/src/main.js"></script>
 </body></html>

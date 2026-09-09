@@ -2,7 +2,7 @@
 
 Status: staged application contract, 2026-09-07. User approved original 1982 appearance and first-stage arithmetic. Evidence and exact legends: [research dossier](RESEARCH.md). Future stages below are implementation planning, not a claim of current functionality.
 
-Current implementation: stage 1 plus the stage 2 real scientific functions and display/angle modes, and stage 3 permutations/combinations. Radix switching, full-mantissa inspection and the other later-stage functions remain deferred. Reviewed numerical conventions and unresolved historical edge cases are recorded in [scientific oracles](SCIENTIFIC-ORACLES.md).
+Current implementation: the nonprogramming calculation families across stages 1–5 are implemented. The stages below retain the original application contract. [Coverage and compatibility](COMPATIBILITY.md) records interface differences, bounded replacement numerical algorithms and unresolved hardware-level edge cases; it is the current status reference.
 
 ## Product outcome
 

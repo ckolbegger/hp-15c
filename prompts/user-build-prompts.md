@@ -25,3 +25,7 @@ What are you doing right now?  I am a little concerned.   You mention a referenc
 ## 4. Continue critic corrections and implement scientific functions
 
 Okay - Usage has reset.  Please continue working on the calculator.   Finish any fixes the critic wanted and then start working on implementing the various function keys (alone, with f depressed, and with g depressed).   Choose a set of functions to add for each implementation pass and have the critic agent check the functionality and the math.
+
+## 5. Complete the remaining calculations
+
+Please complete the computation functionality that we haven't implemented yet

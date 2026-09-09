@@ -1,3 +1,5 @@
+import {Advanced} from './advanced.js';
+import {descriptor} from './matrix.js';
 import {formatNumber, roundDisplay, group} from './format.js';
 import {shiftedKeys} from './bindings.js';
 import {D, PI, unary, power, coordinates, combinatorial} from './math.js';
@@ -12,6 +14,7 @@ export class Calculator {
     this.entry = null;
     this.lift = false;
     this.error = false;
+    this.errorCode = 0;
     this.overflow = false;
     this.on = true;
     this.shift = null;
@@ -21,19 +24,21 @@ export class Calculator {
     if (saved && Array.isArray(saved.stack) && saved.stack.length === 4) {
       try {
         const values = [...saved.stack, saved.lastX];
-        if (values.every(v => new D(v).isFinite() && new D(v).abs().lte(MAX))) {
-          this.stack = saved.stack.map(v => new D(v).toString());
-          this.lastX = new D(saved.lastX).toString();
+        if (values.every(v => descriptor(v) || (new D(v).isFinite() && new D(v).abs().lte(MAX)))) {
+          this.stack = saved.stack.map(v => descriptor(v)?v:new D(v).toString());
+          this.lastX = descriptor(saved.lastX)?saved.lastX:new D(saved.lastX).toString();
           this.lift = !!saved.lift;
           this.on = saved.on !== false;
           if (['DEG','RAD','GRAD'].includes(saved.angleMode)) this.angleMode=saved.angleMode;
-          if (['FIX','SCI','ENG'].includes(saved.format?.mode) && Number.isInteger(saved.format.digits) && saved.format.digits>=0 && saved.format.digits<=9) this.format={...saved.format};
+          if (['FIX','SCI','ENG'].includes(saved.format?.mode) && Number.isInteger(saved.format.digits) && saved.format.digits>=0 && saved.format.digits<=9 && (saved.format.integralDigits===undefined||(Number.isInteger(saved.format.integralDigits)&&saved.format.integralDigits>=-6&&saved.format.integralDigits<=9))) this.format={...saved.format};
         }
       } catch { /* Ignore incompatible saved sessions. */ }
     }
+    this.advanced = new Advanced(this,saved);
+    this.overflow=this.flags[9];
   }
-  save() { return {stack: this.stack, lastX: this.lastX, lift: this.lift, on: this.on, angleMode:this.angleMode, format:this.format}; }
-  push() { this.stack = [this.stack[0], this.stack[0], this.stack[1], this.stack[2]]; }
+  save() { return {advanced:this.advanced.save(), stack: this.stack, lastX: this.lastX, lift: this.lift, on: this.on, angleMode:this.angleMode, format:this.format}; }
+  push() { this.imaginary = [this.imaginary[0],this.imaginary[0],this.imaginary[1],this.imaginary[2]]; this.stack = [this.stack[0], this.stack[0], this.stack[1], this.stack[2]]; }
   entryValue() {
     if (this.entry === null) return new D(this.stack[0]);
     const [mantissa, exponent] = this.entry.split('e');
@@ -43,6 +48,8 @@ export class Calculator {
   begin() {
     if (this.entry !== null) return;
     if (this.lift) this.push();
+    if (!this.preserveImaginary) this.imaginary[0]='0';
+    this.preserveImaginary=false;
     this.entry = '0';
   }
   finish() {
@@ -57,28 +64,41 @@ export class Calculator {
     return n.abs().lt(MIN) ? '0' : n.toString();
   }
   press(key) {
+    this.inspection=null;this.message='';this.request=null;
+    if(!this.error)this.errorCode=0;
+    const wasEntry=this.entry!==null;
+    const result=this._press(key);
+    if(this.lastAction==='CLX'||(this.lastAction==='BACK'&&!wasEntry&&!this.overflow))this.preserveImaginary=true;
+    else if(result&&this.lift&&this.entry===null&&this.lastAction!=='IM_VIEW'&&this.lastAction!=='PREFIX')this.preserveImaginary=false;
+    this.flags[9]=this.overflow;
+    return result;
+  }
+  _press(key) {
     // Errors consume their acknowledgement key; overflow is a persistent flag.
     if (this.on && this.error) { this.error = false; return true; }
     if (key === 'ON') { this.on = !this.on; this.shift = null; this.pending = null; this.overflow = false; return true; }
     if (!this.on) return false;
     if (this.overflow && key === 'BACK') { this.overflow = false; return true; }
+    const raw=this.advanced.raw(key); if(raw!==null)return raw;
     if (key === 'f' || key === 'g') { this.shift = key; return true; }
     if (this.shift) {
       const shifted = this.shift;
       this.shift = null;
-      key = shiftedKeys[shifted][key];
+      key = this.user&&shifted==='f'&&['SQRT','EXP','POW10','POWER','RECIP'].includes(key)?key:shiftedKeys[shifted][key];
       if (!key) return false;
     }
     if (this.pending) {
       const pending=this.pending; this.pending=null;
-      if (['FIX','SCI','ENG'].includes(pending) && /^\d$/.test(key)) {
-        this.finish(); this.format={mode:pending,digits:Number(key)}; return true;
+      if (['FIX','SCI','ENG'].includes(pending) && (/^\d$/.test(key)||key==='TAN')) {
+        this.finish(); const digits=key==='TAN'&&!descriptor(this.index)?new D(this.index).trunc().toNumber():Number(key); if(!Number.isFinite(digits)||digits>9){this.error=true;this.errorCode=3;return true;} this.format=digits<0?{mode:pending,digits:0,integralDigits:Math.max(-6,digits)}:{mode:pending,digits}; return true;
       }
       if (['HYP','AHYP'].includes(pending) && ['SIN','COS','TAN'].includes(key)) key=(pending==='AHYP'?'A':'')+key+'H';
       else return false;
     }
     if (['FIX','SCI','ENG','HYP','AHYP'].includes(key)) { this.pending=key; return true; }
     if (['DEG','RAD','GRAD'].includes(key)) { this.finish(); this.angleMode=key; return true; }
+    this.lastAction=key;
+    const advanced=this.advanced.handle(key); if(advanced!==null)return advanced;
     if (/^\d$/.test(key)) {
       this.begin();
       if (this.entry.includes('e')) {
@@ -110,12 +130,14 @@ export class Calculator {
       return true;
     }
     if (key === 'EEX') {
+      if(descriptor(this.stack[0])&&this.entry===null){this.error=true;this.errorCode=1;return true;}
       if (this.entry?.includes('e')) return true;
       const value = this.entryValue().abs();
       if ((!value.isZero() && value.lt('0.000001')) || value.gte('1e7')) return true;
       if (this.entry === null) {
         if (this.lift) this.push();
-        this.entry = '1'; this.lift = false;
+        if(!this.preserveImaginary)this.imaginary[0]='0';
+        this.preserveImaginary=false;this.entry = '1'; this.lift = false;
       } else if (value.isZero()) this.entry = '1';
       this.entry += 'e00'; this.sync(); return true;
     }
@@ -160,10 +182,10 @@ export class Calculator {
       this.lastX=x.toString(); this.stack[0]=this.normalize(result[0]); this.stack[1]=this.normalize(result[1]); this.lift=true; return true;
     }
     if (key === 'PI') {
-      this.finish(); if (this.lift) this.push(); this.stack[0] = this.normalize(PI); this.lift = true; return true;
+      this.finish(); if (this.lift) this.push(); this.stack[0] = this.normalize(PI);if(!this.preserveImaginary)this.imaginary[0]='0'; this.lift = true; return true;
     }
     if (key === 'RND') {
-      this.finish(); this.lastX = this.stack[0];
+      this.finish(); this.lastX = this.stack[0];this.lastImaginary=this.imaginary[0];
       this.stack[0] = this.normalize(roundDisplay(new D(this.stack[0]),this.format));
       this.lift = true; return true;
     }
@@ -175,7 +197,7 @@ export class Calculator {
       const x = new D(this.stack[0]);
       const result = unary[key](x,this.angleMode);
       if (result.isNaN()) { this.error = true; return true; }
-      this.lastX = x.toString();
+      this.lastX = x.toString();this.lastImaginary=this.imaginary[0];
       this.stack[0] = this.normalize(result); this.lift = true; return true;
     }
     if (key === 'SWAP') {
@@ -189,9 +211,22 @@ export class Calculator {
     }
     return false;
   }
+  completeNumerical(operation,result,bounds) {
+    if(operation==='SOLVE')this.stack=[this.normalize(result.x),this.normalize(result.y),this.normalize(result.residual),this.stack[3]];
+    else this.stack=[this.normalize(result.value),this.normalize(result.error),bounds.x,bounds.y];
+    this.imaginary=Array(4).fill('0');this.flags[9]=this.overflow;
+    this.entry=null;this.lift=true;
+  }
   display() {
+    const display=this.displayValue();
+    if(this.radixComma)display.mantissa=display.mantissa.replace(/[.,]/g,c=>c==='.'?',':'.');
+    return display;
+  }
+  displayValue() {
     if (!this.on) return {mantissa:'', exponent:'', negative:false};
-    if (this.error) return {mantissa:'Error 0', exponent:'', negative:false};
+    if (this.error) return {mantissa:'Error '+this.errorCode, exponent:'', negative:false};
+    if(this.inspection)return {...this.inspection};
+    if(descriptor(this.stack[0])&&this.entry===null){const m=this.matrices[this.stack[0][1]];return {mantissa:this.stack[0][1]+(m.lu?'--':'')+' '+m.rows+' '+m.cols,exponent:'',negative:false};}
     if (this.entry !== null) {
       const [m,e] = this.entry.split('e');
       let mantissa = m.replace('-','');
